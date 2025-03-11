@@ -1,7 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
+from app.routes.clubs import router as clubs_router
 
 app = FastAPI()
+app.include_router(clubs_router)
 
-@app.get("/")
-def read_root():
-    return {"message": "UniVento API çalışıyor 🚀"}
