@@ -35,3 +35,16 @@ async def update_club(club_id: str, updated_club: Club):
         raise HTTPException(status_code=404, detail="Kulüp bulunamadı veya güncellenmedi")
 
     return {"message": "Kulüp başarıyla güncellendi"}
+
+# Kulüp silme
+@router.delete("/clubs/{club_id}")
+async def delete_club(club_id: str):
+    if not ObjectId.is_valid(club_id):
+        raise HTTPException(status_code=400, detail="Geçersiz ID")
+
+    result = await clubs_collection.delete_one({"_id": ObjectId(club_id)})
+
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Kulüp bulunamadı")
+
+    return {"message": "Kulüp başarıyla silindi"}
