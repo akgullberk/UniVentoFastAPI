@@ -1,7 +1,0 @@
-fastapi==0.95.0
-uvicorn==0.22.0
-motor==3.3.0
-pydantic==1.10.2
-python-dotenv==1.0.0
-sqlalchemy==1.4.47
-alembic==1.10.3
