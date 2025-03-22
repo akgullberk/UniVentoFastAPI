@@ -15,7 +15,7 @@ async def get_clubs():
     return clubs
 
 # Yeni kulüp ekle
-@router.post("/clubs")
+@router.post("/clubs") #dsasda
 async def create_club(club: Club):
     new_club = club.dict()
     result = await clubs_collection.insert_one(new_club)
