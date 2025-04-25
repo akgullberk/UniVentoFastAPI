@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes.clubs import router as clubs_router
+from app.routes.events import router as events_router
 
 app = FastAPI()
 
@@ -14,4 +15,5 @@ app.add_middleware(
 )
 
 app.include_router(clubs_router)
+app.include_router(events_router, prefix="/api", tags=["events"])
 
