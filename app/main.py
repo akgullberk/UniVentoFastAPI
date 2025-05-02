@@ -6,6 +6,9 @@ from app.routes.events import router as events_router
 
 app = FastAPI()
 
+# Statik dosya sunucusu ekle
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
 # CORS ayarlarını yapılandırıyoruz
 app.add_middleware(
     CORSMiddleware,
@@ -15,8 +18,7 @@ app.add_middleware(
     allow_headers=["*"],  # Tüm başlıklara izin ver
 )
 
-# Statik dosya sunucusu ekle
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
 
 app.include_router(clubs_router)
 app.include_router(events_router, prefix="/api", tags=["events"])
