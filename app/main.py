@@ -9,7 +9,7 @@ app = FastAPI()
 # CORS ayarlarını yapılandırıyoruz
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://16.170.205.160", "http://localhost:3000"],  # Sunucu adresi ve localhost
+    allow_origins=["http://16.170.205.160", "http://localhost:3000"],  # Sunucu adresi ve localhost
     allow_credentials=True,
     allow_methods=["*"],  # Tüm HTTP yöntemlerine izin ver
     allow_headers=["*"],  # Tüm başlıklara izin ver
