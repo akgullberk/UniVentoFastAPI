@@ -8,6 +8,7 @@ class Event(BaseModel):
     date_time: str  # Tarih ve saat (string formatında)
     details: str  # Etkinlik detayları
     club_id: Optional[str] = None  # Hangi kulübe ait olduğu (opsiyonel)
+    image_url: Optional[str] = None  # Etkinlik resmi URL'i (opsiyonel)
     
     class Config:
         json_encoders = {
