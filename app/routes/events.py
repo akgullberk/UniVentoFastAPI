@@ -6,7 +6,6 @@ from typing import List, Optional
 import aiofiles
 import os
 from datetime import datetime
-import json
 
 router = APIRouter()
 
@@ -35,7 +34,7 @@ async def get_club_events(club_id: str):
         events.append(event)
     return events
 
-# Yeni etkinlik ekle (resim ile birlikte)
+# Yeni etkinlik ekle
 @router.post("/events")
 async def create_event(
     name: str = Form(...),
@@ -43,8 +42,13 @@ async def create_event(
     date_time: str = Form(...),
     details: str = Form(...),
     club_id: Optional[str] = Form(None),
-    image: Optional[UploadFile] = File(None)
+    image: UploadFile = File(...)  # Resim zorunlu hale getirildi
 ):
+    # Dosya uzantısını kontrol et
+    file_extension = image.filename.split(".")[-1].lower()
+    if file_extension not in ["jpg", "jpeg", "png", "gif"]:
+        raise HTTPException(status_code=400, detail="Sadece jpg, jpeg, png ve gif dosyaları yüklenebilir")
+    
     # Etkinlik verilerini oluştur
     event_data = {
         "name": name,
@@ -52,27 +56,19 @@ async def create_event(
         "date_time": date_time,
         "details": details,
         "club_id": club_id,
-        "image_url": DEFAULT_IMAGE_URL  # Varsayılan resim URL'ini ekle
+        "image_url": DEFAULT_IMAGE_URL
     }
     
     # Etkinliği veritabanına ekle
     result = await events_collection.insert_one(event_data)
     event_id = str(result.inserted_id)
     
-    # Eğer resim yüklendiyse
-    if image:
-        # Dosya uzantısını kontrol et
-        file_extension = image.filename.split(".")[-1].lower()
-        if file_extension not in ["jpg", "jpeg", "png", "gif"]:
-            # Etkinliği sil ve hata döndür
-            await events_collection.delete_one({"_id": ObjectId(event_id)})
-            raise HTTPException(status_code=400, detail="Sadece jpg, jpeg, png ve gif dosyaları yüklenebilir")
-        
-        # Benzersiz dosya adı oluştur
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"{event_id}_{timestamp}.{file_extension}"
-        file_path = os.path.join(UPLOAD_DIR, filename)
-        
+    # Benzersiz dosya adı oluştur
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"{event_id}_{timestamp}.{file_extension}"
+    file_path = os.path.join(UPLOAD_DIR, filename)
+    
+    try:
         # Dosyayı kaydet
         async with aiofiles.open(file_path, 'wb') as out_file:
             content = await image.read()
@@ -84,49 +80,15 @@ async def create_event(
             {"_id": ObjectId(event_id)},
             {"$set": {"image_url": image_url}}
         )
-    else:
-        image_url = DEFAULT_IMAGE_URL
+    except Exception as e:
+        # Hata durumunda etkinliği sil
+        await events_collection.delete_one({"_id": ObjectId(event_id)})
+        raise HTTPException(status_code=500, detail=f"Resim yüklenirken hata oluştu: {str(e)}")
     
     return {
         "id": event_id,
-        "message": "Etkinlik başarıyla eklendi",
-        "image_url": image_url
+        "message": "Etkinlik başarıyla eklendi"
     }
-
-# Etkinlik resmi yükle
-@router.post("/events/{event_id}/image")
-async def upload_event_image(event_id: str, file: UploadFile = File(...)):
-    if not ObjectId.is_valid(event_id):
-        raise HTTPException(status_code=400, detail="Geçersiz etkinlik ID")
-    
-    # Etkinliğin var olduğunu kontrol ediyoruz
-    existing_event = await events_collection.find_one({"_id": ObjectId(event_id)})
-    if not existing_event:
-        raise HTTPException(status_code=404, detail="Etkinlik bulunamadı")
-    
-    # Dosya uzantısını kontrol et
-    file_extension = file.filename.split(".")[-1].lower()
-    if file_extension not in ["jpg", "jpeg", "png", "gif"]:
-        raise HTTPException(status_code=400, detail="Sadece jpg, jpeg, png ve gif dosyaları yüklenebilir")
-    
-    # Benzersiz dosya adı oluştur
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"{event_id}_{timestamp}.{file_extension}"
-    file_path = os.path.join(UPLOAD_DIR, filename)
-    
-    # Dosyayı kaydet
-    async with aiofiles.open(file_path, 'wb') as out_file:
-        content = await file.read()
-        await out_file.write(content)
-    
-    # Resim URL'ini güncelle
-    image_url = f"/uploads/events/{filename}"
-    await events_collection.update_one(
-        {"_id": ObjectId(event_id)},
-        {"$set": {"image_url": image_url}}
-    )
-    
-    return {"message": "Etkinlik resmi başarıyla yüklendi", "image_url": image_url}
 
 # Etkinlik güncelle
 @router.put("/events/{event_id}")
