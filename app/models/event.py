@@ -3,6 +3,7 @@ from typing import Optional
 from bson import ObjectId
 
 class Event(BaseModel):
+    id: Optional[str] = None  # Etkinlik ID'si
     name: str  # Etkinlik adı
     location: str  # Etkinlik konumu
     date_time: str  # Tarih ve saat (string formatında)
@@ -12,5 +13,5 @@ class Event(BaseModel):
     
     class Config:
         json_encoders = {
-            ObjectId: lambda v: str(v)
+            ObjectId: str
         } 

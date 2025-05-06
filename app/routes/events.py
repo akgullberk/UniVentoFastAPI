@@ -6,6 +6,7 @@ from typing import List, Optional
 import aiofiles
 import os
 from datetime import datetime
+import uuid
 
 router = APIRouter()
 
@@ -16,12 +17,22 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 # Varsayılan resim URL'i
 DEFAULT_IMAGE_URL = "https://www.firat.edu.tr/images/content_menu/16329166375.png"
 
+# Debug: Tüm etkinlikleri detaylı göster
+@router.get("/events/debug")
+async def get_events_debug():
+    events = []
+    async for event in events_collection.find():
+        event["_id"] = str(event["_id"])
+        events.append(event)
+    return events
+
 # Tüm etkinlikleri getir
 @router.get("/events", response_model=List[Event])
 async def get_events():
     events = []
     async for event in events_collection.find():
         event["_id"] = str(event["_id"])
+        event["id"] = str(event["_id"])
         events.append(event)
     return events
 
@@ -31,11 +42,12 @@ async def get_club_events(club_id: str):
     events = []
     async for event in events_collection.find({"club_id": club_id}):
         event["_id"] = str(event["_id"])
+        event["id"] = str(event["_id"])
         events.append(event)
     return events
 
 # Yeni etkinlik ekle
-@router.post("/events")
+@router.post("/eventssss")
 async def create_event(
     name: str = Form(...),
     location: str = Form(...),
@@ -93,9 +105,6 @@ async def create_event(
 # Etkinlik güncelle
 @router.put("/events/{event_id}")
 async def update_event(event_id: str, updated_event: Event):
-    if not ObjectId.is_valid(event_id):
-        raise HTTPException(status_code=400, detail="Geçersiz etkinlik ID")
-    
     # Etkinliğin var olduğunu kontrol ediyoruz
     existing_event = await events_collection.find_one({"_id": ObjectId(event_id)})
     if not existing_event:
@@ -115,9 +124,6 @@ async def update_event(event_id: str, updated_event: Event):
 # Etkinlik sil
 @router.delete("/events/{event_id}")
 async def delete_event(event_id: str):
-    if not ObjectId.is_valid(event_id):
-        raise HTTPException(status_code=400, detail="Geçersiz etkinlik ID")
-    
     # Etkinliğin resmini de sil
     event = await events_collection.find_one({"_id": ObjectId(event_id)})
     if event and "image_url" in event and event["image_url"] != DEFAULT_IMAGE_URL:
