@@ -47,7 +47,7 @@ async def get_club_events(club_id: str):
     return events
 
 # Yeni etkinlik ekle
-@router.post("/eventssss")
+@router.post("/events")
 async def create_event(
     name: str = Form(...),
     location: str = Form(...),
