@@ -74,7 +74,8 @@ async def create_participation_request(
             id=str(uuid.uuid4()),
             event_id=str(event_object_id),
             email=email,
-            club_president_email=club_president_email
+            club_president_email=club_president_email,
+            event_name=event.get("name", "Bilinmeyen Etkinlik")
         )
         
         result = await event_participations_collection.insert_one(participation.dict())
@@ -96,6 +97,10 @@ async def create_participation_request(
 async def get_participation_requests(club_president_email: str):
     requests = []
     async for request in event_participations_collection.find({"club_president_email": club_president_email}):
+        # Etkinlik bilgilerini al
+        event = await events_collection.find_one({"_id": ObjectId(request["event_id"])})
+        if event:
+            request["event_name"] = event.get("name", "Bilinmeyen Etkinlik")
         request["id"] = str(request["_id"])
         requests.append(request)
     return requests
@@ -135,6 +140,10 @@ async def update_participation_request(request_id: str, status: str):
 async def get_user_participations(email: str):
     requests = []
     async for request in event_participations_collection.find({"email": email}):
+        # Etkinlik bilgilerini al
+        event = await events_collection.find_one({"_id": ObjectId(request["event_id"])})
+        if event:
+            request["event_name"] = event.get("name", "Bilinmeyen Etkinlik")
         request["id"] = str(request["_id"])
         requests.append(request)
     return requests 
