@@ -5,6 +5,7 @@ from app.routes.clubs import router as clubs_router
 from app.routes.events import router as events_router
 from app.routes.event_participations import router as event_participations_router
 from app.routes.club_memberships import router as club_memberships_router
+from app.routes.ai import router as ai_router
 from app.db.database import init_collections
 
 app = FastAPI()
@@ -31,4 +32,5 @@ app.include_router(clubs_router)
 app.include_router(events_router, prefix="/api", tags=["events"])
 app.include_router(event_participations_router, prefix="/api", tags=["event_participations"])
 app.include_router(club_memberships_router, prefix="/api", tags=["club_memberships"])
+app.include_router(ai_router, prefix="/api", tags=["ai"])
 
